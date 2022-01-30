@@ -8,24 +8,10 @@ using System.Windows.Forms;
 using System.Web;
 using System.Net;
 using System.Text.RegularExpressions;
+using OsuParsers.Replays;
 
 namespace BackReplayTackler
 {
-    public class Play
-    {
-        public string username;
-        public float accuracy;
-        public float score;
-        public int s300;
-        public int s100;
-        public int s50;
-        public int sgeki;
-        public int skatu;
-        public int misses;
-        public int mods;
-        public int maxCombo;
-        public string rank;
-    }
 
     public partial class Form1 : Form
     {
@@ -61,9 +47,17 @@ namespace BackReplayTackler
         void wc_DownloadCompleted(object sender, AsyncCompletedEventArgs a)
         {
             label3.Text = "Downloaded: " + a.Error + ". Will now parse!";
-            if (System.IO.File.Exists(OutputPath + "/temp.html"))
+
+            WebClient wc = new WebClient();
+            wc.DownloadFile(
+                new System.Uri("https://dev.hubza.co.uk/getbeatmaphash.php?b=" + textBox3.Text),
+                OutputPath + "/temp.txt"
+            );
+
+            if (System.IO.File.Exists(OutputPath + "/temp.html") && System.IO.File.Exists(OutputPath + "/temp.txt"))
             {
                 string[] fileContents = System.IO.File.ReadAllLines(OutputPath + "/temp.html");
+                string hash = System.IO.File.ReadAllLines(OutputPath + "/temp.txt")[0];
                 bool inTable = false;
                 List<string> table = new List<string>();
                 foreach(string line in fileContents)
@@ -175,6 +169,38 @@ namespace BackReplayTackler
                     }
                 }
                 label3.Text = plays[10].username;
+
+                foreach(Play play in plays)
+                {
+                    try
+                    {
+                        if (play != null)
+                        {
+                            label3.Text = "Writing replay for play by " + play.username;
+                            Replay replay = new Replay();
+                            replay.Combo = (ushort)play.maxCombo;
+                            replay.Count100 = (ushort)play.s100;
+                            replay.Count50 = (ushort)play.s50;
+                            replay.Count300 = (ushort)play.s300;
+                            replay.PlayerName = play.username;
+                            replay.Ruleset = OsuParsers.Enums.Ruleset.Standard;
+                            replay.ReplayTimestamp = new DateTime(0);
+                            replay.ReplayScore = (int)play.score;
+                            replay.ReplayLength = 90000000;
+                            replay.Mods = 0;
+                            replay.CountGeki = (ushort)play.sgeki;
+                            replay.CountKatu = (ushort)play.skatu;
+                            replay.CountMiss = (ushort)play.misses;
+                            replay.OnlineId = long.Parse(textBox3.Text);
+                            replay.OsuVersion = 20200101;
+                            replay.BeatmapMD5Hash = hash;
+                            replay.Save(OutputPath + "/" + replay.OnlineId + "_" + replay.PlayerName + ".osr");
+                        }
+                    }catch
+                    {
+
+                    }
+                }
             }
             else
             {
@@ -212,5 +238,26 @@ namespace BackReplayTackler
         {
 
         }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
+
+    public class Play
+    {
+        public string username;
+        public float accuracy;
+        public float score;
+        public int s300;
+        public int s100;
+        public int s50;
+        public int sgeki;
+        public int skatu;
+        public int misses;
+        public int mods;
+        public int maxCombo;
+        public string rank;
     }
 }
