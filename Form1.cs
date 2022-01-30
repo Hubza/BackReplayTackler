@@ -116,6 +116,7 @@ namespace BackReplayTackler
                         if(wayThrough == 1)
                         {
                             // todo: parse rank
+                            // update: rank shows up fine in-game, not needed!
                         }
 
                         if(wayThrough == 2)
