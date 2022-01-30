@@ -126,7 +126,7 @@ namespace BackReplayTackler
 
                         if(wayThrough == 3)
                         {
-                            plays[playIndex].accuracy = float.Parse(xStrip(line, "td").Replace("%", ""));
+                            plays[playIndex].accuracy = float.Parse(xStrip(xStrip(line, "td"), "b").Replace("%", ""));
                         }
 
                         if(wayThrough == 4)
